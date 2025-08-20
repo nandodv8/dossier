@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maduro Republic: Panel Estratégico Interactivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Earth & Gold -->
+    <!-- Application Structure Plan: A single-page dashboard with a top navigation bar to switch between three main views: 'Resumen Comparativo' (Comparative Summary), 'Análisis de Tendencias' (Trend Analysis), and 'Hoja de Ruta Experimental' (Experimental Roadmap). This structure allows users to quickly grasp the high-level strategy (comparison), dive into the details of each trend, and finally see the action plan. The flow is logical, moving from strategy to tactics. The interactive charts and cards make complex information digestible and engaging, which is more effective than a linear report for quick decision-making. -->
+    <!-- Visualization & Content Choices: 
+        1. Comparative Summary: Report Info -> City strategy comparison. Goal -> Compare. Viz -> Two side-by-side radar charts (Chart.js/Canvas). Interaction -> Hovering over points reveals scores. Justification -> Radar charts are excellent for comparing multiple quantitative variables (the trend scores) for different entities (cities).
+        2. Trend Analysis: Report Info -> Detailed breakdown of 10 trends. Goal -> Organize & Inform. Viz -> Interactive HTML/CSS cards. Interaction -> Clicking a trend card reveals its detailed analysis (description, application, impact). Justification -> A card layout is visually appealing and allows users to explore trends at their own pace without being overwhelmed by text.
+        3. Experimental Roadmap: Report Info -> 4-week, 6-experiment plan. Goal -> Change/Process. Viz -> Interactive timeline built with HTML/CSS/Tailwind. Interaction -> Clicking on an experiment highlights its details (KPIs, hypothesis). Justification -> A timeline visually represents the sequence and duration of tasks, making the action plan clear and easy to follow.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #D1A15A;
+            color: #FFFFFF;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .trend-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .trend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #E6CBA8;
+            border: 3px solid #FDFBF8;
+        }
+        .timeline-item.active::before {
+            background-color: #D1A15A;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#D1A15A]">Maduro Republic</h1>
+            <p class="text-lg text-gray-600 mt-2">Panel de Hoja de Ruta Estratégica 2024-2026</p>
+        </header>
+
+        <nav class="flex justify-center bg-white/70 backdrop-blur-sm rounded-full shadow-md p-2 mb-10 sticky top-4 z-10 max-w-lg mx-auto">
+            <button data-view="comparison" class="nav-button active flex-1 text-center py-2 px-4 rounded-full text-sm sm:text-base font-semibold">Resumen Comparativo</button>
+            <button data-view="trends" class="nav-button flex-1 text-center py-2 px-4 rounded-full text-sm sm:text-base font-semibold">Análisis de Tendencias</button>
+            <button data-view="roadmap" class="nav-button flex-1 text-center py-2 px-4 rounded-full text-sm sm:text-base font-semibold">Hoja de Ruta</button>
+        </nav>
+
+        <main id="app-content">
+            <!-- VISTA: Resumen Comparativo -->
+            <section id="comparison-view" class="view">
+                <div class="text-center mb-10">
+                    <h2 class="text-2xl font-bold text-gray-800">Estrategias de Mercado: Quito vs. Guayaquil</h2>
+                    <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Esta sección ofrece una comparación visual directa de las prioridades estratégicas para cada ciudad. Los gráficos de radar destacan cómo las diferentes tendencias resuenan en cada mercado, revelando dos perfiles de consumidor distintos: el "Explorador Culinario" en Quito y el "Conector Social" en Guayaquil. Utiliza esta vista para entender rápidamente el núcleo de la estrategia dual.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">Quito: El Explorador Culinario</h3>
+                        <div class="chart-container">
+                            <canvas id="quitoChart"></canvas>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4">Enfoque en innovación, narrativa del producto y experiencias gastronómicas para un público sofisticado.</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">Guayaquil: El Conector Social</h3>
+                        <div class="chart-container">
+                            <canvas id="guayaquilChart"></canvas>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4">Énfasis en valor social, atractivo visual para redes y capitalización de ocasiones de consumo nocturno.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA: Análisis de Tendencias -->
+            <section id="trends-view" class="view hidden">
+                 <div class="text-center mb-10">
+                    <h2 class="text-2xl font-bold text-gray-800">Análisis Detallado de Tendencias Gastronómicas</h2>
+                    <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Explora las diez tendencias clave que fundamentan la estrategia de "Maduro Republic". Cada tarjeta representa una oportunidad de mercado. Haz clic en cualquiera de ellas para desplegar un análisis completo, incluyendo su descripción, aplicabilidad al concepto de maduro, y su impacto potencial en el negocio. Esta sección es tu biblioteca de insights para la innovación.</p>
+                </div>
+                <div id="trends-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                </div>
+            </section>
+            
+            <!-- VISTA: Hoja de Ruta Experimental -->
+            <section id="roadmap-view" class="view hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-2xl font-bold text-gray-800">Plan de Acción Experimental de 4 Semanas</h2>
+                     <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Esta es la hoja de ruta para validar las hipótesis más críticas del modelo de negocio antes de una inversión a gran escala. La línea de tiempo interactiva detalla seis experimentos clave, desde pruebas de producto hasta campañas de marketing. Navega por las semanas para entender el enfoque ágil de "probar y aprender" que minimizará el riesgo y optimizará la oferta final.</p>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    <div id="roadmap-timeline" class="relative pl-8 border-l-2 border-dashed border-gray-300">
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const views = {
+                comparison: document.getElementById('comparison-view'),
+                trends: document.getElementById('trends-view'),
+                roadmap: document.getElementById('roadmap-view')
+            };
+            const navButtons = document.querySelectorAll('.nav-button');
+
+            const trendData = [
+                { id: 1, name: "Street-food Couture", icon: "✨", description: "Elevar la comida callejera con ingredientes premium, técnicas refinadas y presentación artística.", application: "Patacones Bravos de Maduro con alioli de ají ahumado; Mini Canoas Gourmet con rellenos premium.", impact: "Alta diferenciación y justificación de precios premium." },
+                { id: 2, name: "Swicy", icon: "🌶️", description: "Fusión de sabores dulces (sweet) y picantes (spicy), con profundas raíces en la cocina latinoamericana.", application: "Papas Fritas de Maduro 'Fuego Dulce' con un 'flight' de 3 salsas swicy para dipear (tamarindo-ají, guayaba-chipotle).", impact: "Alto atractivo para paladares aventureros, viralizable." },
+                { id: 3, name: "Newstalgia", icon: " nostalgic_icon ", description: "Reimaginar clásicos reconfortantes y nostálgicos con giros modernos y a menudo más saludables.", application: "Bolón de Maduro 'Deconstruido' con base horneada, chicharrón crujiente y huevo pochado.", impact: "Conexión emocional fuerte con el consumidor local." },
+                { id: 4, name: "Visual-First", icon: "📸", description: "Diseñar la experiencia (emplatado, interiorismo) para que sea inherentemente fotogénica y compartible.", application: "'Maduro en Flor' (entero horneado y abierto), bebidas que cambian de color, vajilla brandeada.", impact: "Marketing orgánico a través de contenido generado por el usuario (UGC)." },
+                { id: 5, name: "Valor (sin devaluarte)", icon: "💰", description: "Crear percepción de alto valor con combos estratégicos y opciones para compartir, no con precios bajos.", application: "'La Pambamesa de Maduro' (tabla para 2-3 personas), combos ejecutivos, tarjeta de lealtad digital.", impact: "Aumento del ticket promedio y fomento del consumo en grupo." },
+                { id: 6, name: "Menú Corto & Cross-Utilization", icon: "🔄", description: "Menú enfocado con pocos ítems para mayor calidad, rapidez y menos desperdicio, usando ingredientes en varios platos.", application: "4-5 bases de maduro, 4 proteínas y 4 salsas que se pueden combinar libremente.", impact: "Optimización operativa, mayor rotación y márgenes de ganancia." },
+                { id: 7, name: "Horno / Air-Fryer", icon: "💨", description: "Usar métodos de cocción más saludables para ofrecer texturas únicas y mejorar la eficiencia.", application: "Posicionar el 'Maduro Horneado' como estándar, con el frito como extra premium. Lema: 'Crocante sin Culpa'.", impact: "Atrae al segmento de consumidores conscientes de la salud." },
+                { id: 8, name: "Noches y Late Snack", icon: "🌙", description: "Extender horarios y ofrecer menús específicos para capturar los segmentos de after-office y consumo nocturno.", application: "'After Office Maduro' con 2x1 en cócteles; 'Maduro de Medianoche' (menú limitado para delivery de 10pm-1am).", impact: "Nuevas fuentes de ingreso en horas de bajo tráfico." },
+                { id: 9, name: "Sostenibilidad Simple", icon: "🌿", description: "Implementar y comunicar prácticas de sostenibilidad tangibles y fáciles de entender por el consumidor.", application: "Empaques de papel Kraft, historia de origen ('Nuestro maduro de El Carmen, Manabí'), uso de cáscaras para bebidas.", impact: "Construcción de marca y conexión con consumidores conscientes." },
+                { id: 10, name: "Omnicanal Ligero", icon: "📱", description: "Integrar canales de pedido digital (delivery, pickup) de manera rentable, apalancándose en plataformas de terceros.", application: "Vitrinas optimizadas en Rappi/PedidosYa; menú digital simple para pedidos directos por WhatsApp.", impact: "Acceso a un mercado más amplio y conveniencia para el cliente." }
+            ];
+            
+            const roadmapData = [
+                { week: 1, experiment: 1, name: "La Apuesta Swicy", trend: "Swicy", hypothesis: "Clientes aceptarán y pagarán extra por salsas swicy premium.", kpi: "Tasa de Adopción >30%, Conversión de Upsell >40%." },
+                { week: 1, experiment: 2, name: "El Atractivo de la Newstalgia", trend: "Newstalgia", hypothesis: "El 'Bolón Deconstruido' justificará un precio ~30% más alto que el tradicional.", kpi: "Mix de Ventas: Deconstruido alcanza 50% del volumen del tradicional." },
+                { week: 2, experiment: 3, name: "El Poder de lo Corto", trend: "Menú Corto", hypothesis: "Menú enfocado reducirá tiempos de preparación y aumentará satisfacción.", kpi: "Tiempo promedio de ticket < 7 minutos." },
+                { week: 2, experiment: 4, name: "El Valor de Compartir", trend: "Valor", hypothesis: "La 'Pambamesa' aumentará significativamente el ticket promedio en grupos.", kpi: "Ticket promedio con Pambamesa >80% más alto que el general." },
+                { week: 3, experiment: 5, name: "Lo Visual Impulsa Clics", trend: "Visual-First", hypothesis: "Campaña de Reels del 'Maduro en Flor' impulsará pedidos directos por WhatsApp.", kpi: "CTR >2%, Tasa de Conversión >10%." },
+                { week: 4, experiment: 6, name: "Viabilidad Nocturna", trend: "Noches y Late Snack", hypothesis: "Menú 'Maduro de Medianoche' generará pedidos incrementales significativos.", kpi: "Pedidos nocturnos >15% del volumen diario." }
+            ];
+
+            function switchView(viewName) {
+                Object.values(views).forEach(view => view.classList.add('hidden'));
+                if (views[viewName]) {
+                    views[viewName].classList.remove('hidden');
+                }
+                navButtons.forEach(button => {
+                    button.classList.toggle('active', button.dataset.view === viewName);
+                });
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => switchView(button.dataset.view));
+            });
+
+            function createRadarChart(ctx, label, data, color) {
+                const chartLabels = ['Street-food Couture', 'Newstalgia', 'Swicy', 'Visual-First', 'Valor'];
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            backgroundColor: `rgba(${color}, 0.2)`,
+                            borderColor: `rgb(${color})`,
+                            pointBackgroundColor: `rgb(${color})`,
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: `rgb(${color})`
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                                pointLabels: { 
+                                    font: { size: 10 },
+                                    color: '#4A4A4A'
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 5,
+                                ticks: {
+                                  stepSize: 1,
+                                  backdropColor: 'rgba(255, 255, 255, 0.75)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            const quitoData = [5, 4.5, 4, 3, 3.5]; 
+            const guayaquilData = [4, 3, 3.5, 5, 5]; 
+            createRadarChart(document.getElementById('quitoChart').getContext('2d'), 'Quito', quitoData, '209, 161, 90');
+            createRadarChart(document.getElementById('guayaquilChart').getContext('2d'), 'Guayaquil', guayaquilData, '107, 114, 128');
+
+            const trendsGrid = document.getElementById('trends-grid');
+            trendData.forEach(trend => {
+                const card = document.createElement('div');
+                card.className = 'trend-card bg-white rounded-xl shadow-md cursor-pointer overflow-hidden';
+                card.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">${trend.icon}</span>
+                            <h4 class="font-semibold text-gray-800">${trend.name}</h4>
+                        </div>
+                    </div>
+                    <div class="details p-5 bg-gray-50 border-t border-gray-200 hidden">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Descripción:</p>
+                        <p class="text-sm text-gray-600 mb-3">${trend.description}</p>
+                        <p class="text-sm font-medium text-gray-700 mb-2">Aplicación al Concepto:</p>
+                        <p class="text-sm text-gray-600 mb-3">${trend.application}</p>
+                        <p class="text-sm font-medium text-gray-700 mb-2">Impacto Potencial:</p>
+                        <p class="text-sm text-gray-600">${trend.impact}</p>
+                    </div>
+                `;
+                trendsGrid.appendChild(card);
+
+                card.addEventListener('click', () => {
+                    card.querySelector('.details').classList.toggle('hidden');
+                });
+            });
+            
+            const roadmapTimeline = document.getElementById('roadmap-timeline');
+            let currentWeek = 0;
+            roadmapData.forEach(item => {
+                if(item.week !== currentWeek) {
+                    currentWeek = item.week;
+                    const weekHeader = document.createElement('div');
+                    weekHeader.className = 'mb-6';
+                    weekHeader.innerHTML = `<h4 class="text-lg font-bold text-[#D1A15A] ml-[-30px]">Semana ${currentWeek}</h4>`;
+                    roadmapTimeline.appendChild(weekHeader);
+                }
+
+                const itemEl = document.createElement('div');
+                itemEl.className = 'timeline-item relative mb-8 pl-8';
+                itemEl.innerHTML = `
+                    <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-[#E6CBA8]">
+                        <p class="text-xs text-gray-500 font-semibold">${item.trend}</p>
+                        <h5 class="font-bold text-gray-800">${item.name}</h5>
+                        <div class="details mt-2 text-sm text-gray-600">
+                           <p><strong class="font-semibold">Hipótesis:</strong> ${item.hypothesis}</p>
+                           <p class="mt-1"><strong class="font-semibold">KPI Clave:</strong> ${item.kpi}</p>
+                        </div>
+                    </div>
+                `;
+                roadmapTimeline.appendChild(itemEl);
+            });
+
+            switchView('comparison');
+        });
+    </script>
+</body>
+</html>
